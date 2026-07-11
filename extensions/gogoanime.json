@@ -1,0 +1,26 @@
+{
+  "name": "Gogoanime",
+  "version": "1.0.0",
+  "author": "Community",
+  "description": "Gogoanime - Watch anime online in high quality",
+  "icon": "https://gogoanime.foo/favicon.ico",
+  "base_url": "https://gogoanime.foo",
+  "search_url": "/search.html?keyword={query}",
+  "selectors": {
+    "searchList": ".last_episode, .items li, .listing li, .anime-list .item",
+    "searchTitle": "a, .name, h3, h4",
+    "searchLink": "a",
+    "searchCover": "img",
+    "searchMeta": ".episode, .released, .status",
+    "animePage": {
+      "title": "h1, .title h1, .anime-info h1",
+      "synopsis": ".description, p.description, .synopsis",
+      "cover": "img[class*='cover'], img[class*='poster'], .anime-cover img",
+      "episodeList": ".episode-list a, .listing li, .episodes a, tr.episode",
+      "episodeNumber": ".number, .ep-number, .name, td:first-child",
+      "episodeTitle": ".title, .ep-title, td:nth-child(2)",
+      "episodeLink": "a",
+      "episodeVideo": "video source, iframe, [class*='video'] source"
+    }
+  }
+}

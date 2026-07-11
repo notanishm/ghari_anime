@@ -1,0 +1,26 @@
+{
+  "name": "AniList",
+  "version": "1.0.0",
+  "author": "Community",
+  "description": "AniList - Track, discover, and watch anime",
+  "icon": "https://anilist.co/favicon.ico",
+  "base_url": "https://anilist.co",
+  "search_url": "/search/anime?q={query}",
+  "selectors": {
+    "searchList": ".result, .media-card, [class*='result'], [class*='card']",
+    "searchTitle": "a[class*='title'], .title, h3, h4",
+    "searchLink": "a",
+    "searchCover": "img",
+    "searchMeta": ".episodes, .format, .meta",
+    "animePage": {
+      "title": "h1, .title h1, [class*='title'] h1",
+      "synopsis": ".description, .synopsis, [class*='desc']",
+      "cover": "img[class*='cover'], img[class*='poster']",
+      "episodeList": ".episode, [class*='episode'], tr, .list-item",
+      "episodeNumber": ".number, .ep-number, td:first-child, .num",
+      "episodeTitle": ".title, .ep-title, td:nth-child(2)",
+      "episodeLink": "a",
+      "episodeVideo": "video source, iframe, [class*='video'] source"
+    }
+  }
+}

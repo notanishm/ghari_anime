@@ -1,0 +1,26 @@
+{
+  "name": "Crunchyroll",
+  "version": "1.0.0",
+  "author": "Community",
+  "description": "Crunchyroll - Watch anime, read manga, and enjoy games",
+  "icon": "https://www.crunchyroll.com/favicon.ico",
+  "base_url": "https://www.crunchyroll.com",
+  "search_url": "/search?q={query}",
+  "selectors": {
+    "searchList": ".search-results .item, [class*='search'] [class*='result'], [class*='card']",
+    "searchTitle": "a span.title, a[class*='title'], h3, h4",
+    "searchLink": "a",
+    "searchCover": "img",
+    "searchMeta": ".episode-count, .meta, .info",
+    "animePage": {
+      "title": "h1, .title h1, [class*='title'] h1",
+      "synopsis": ".description, .synopsis, [class*='desc']",
+      "cover": "img[class*='cover'], img[class*='poster'], .cover img",
+      "episodeList": ".episode, [class*='episode'], .season-episode, li[class*='ep']",
+      "episodeNumber": ".number, .ep-number, [class*='num']",
+      "episodeTitle": ".title, .ep-title, [class*='title']",
+      "episodeLink": "a",
+      "episodeVideo": "video source, [class*='video'] source, iframe"
+    }
+  }
+}
