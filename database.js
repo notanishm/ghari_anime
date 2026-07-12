@@ -2,7 +2,25 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = path.join(__dirname, 'data', 'mihonwacther.db');
+function getDataDir() {
+  // In Electron packaged app, __dirname is inside asar (read-only)
+  // Use userData path for writable database storage
+  try {
+    const { app } = require('electron');
+    if (app && app.getPath) {
+      const userData = app.getPath('userData');
+      const dataDir = path.join(userData, 'data');
+      if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+      return dataDir;
+    }
+  } catch (e) {}
+  // Fallback to local data directory (normal Node.js)
+  const dataDir = path.join(__dirname, 'data');
+  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+  return dataDir;
+}
+
+const DB_PATH = path.join(getDataDir(), 'gharianime.db');
 
 let db;
 

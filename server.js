@@ -33,6 +33,6 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`MihonWacther running on http://localhost:${PORT}`);
+  console.log(`GharAnime running on http://localhost:${PORT}`);
   console.log(`Open your browser to http://localhost:${PORT}`);
 });

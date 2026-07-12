@@ -3,3 +3,8 @@ data/*.db
 data/*.db-shm
 data/*.db-wal
 *.log
+build-output/
+dist/
+main.js
+generate-icon.js
+generate-ico.js

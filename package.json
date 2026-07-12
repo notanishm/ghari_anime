@@ -1,14 +1,14 @@
 {
-  "name": "mihonwacther",
+  "name": "gharianime",
   "version": "1.0.0",
-  "description": "An open-source anime watching platform - the Mihon equivalent for anime",
+  "description": "An open-source anime watching platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
   },
   "dependencies": {
-    "better-sqlite3": "^11.0.0",
+    "better-sqlite3": "^12.11.1",
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
