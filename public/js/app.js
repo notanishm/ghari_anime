@@ -4,6 +4,7 @@ let currentEpisodes = [];
 let currentAnime = null;
 let playerAnimeId = null;
 let playerEpisodes = [];
+let miniplayerActive = false;
 
 document.addEventListener('DOMContentLoaded', () => {
   initGlassSidebar();
@@ -11,7 +12,45 @@ document.addEventListener('DOMContentLoaded', () => {
   loadLibrary();
   loadSettings();
   loadBackups();
+  initMiniplayerDrag();
 });
+
+function initMiniplayerDrag() {
+  const miniplayer = document.getElementById('miniplayer');
+  const handle = document.getElementById('miniplayer-drag-handle');
+  if (!miniplayer || !handle) return;
+
+  let isDragging = false;
+  let offsetX, offsetY;
+
+  handle.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.miniplayer-btn')) return;
+    isDragging = true;
+    offsetX = e.clientX - miniplayer.getBoundingClientRect().left;
+    offsetY = e.clientY - miniplayer.getBoundingClientRect().top;
+    miniplayer.style.transition = 'none';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    let x = e.clientX - offsetX;
+    let y = e.clientY - offsetY;
+    x = Math.max(0, Math.min(window.innerWidth - miniplayer.offsetWidth, x));
+    y = Math.max(0, Math.min(window.innerHeight - miniplayer.offsetHeight, y));
+    miniplayer.style.left = x + 'px';
+    miniplayer.style.top = y + 'px';
+    miniplayer.style.right = 'auto';
+    miniplayer.style.bottom = 'auto';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      miniplayer.style.transition = '';
+    }
+  });
+}
 
 function initGlassSidebar() {
   const sidebar = document.getElementById('sidebar');
@@ -115,6 +154,17 @@ function initNavigation() {
 }
 
 function showPage(page) {
+  const playerPage = document.getElementById('page-player');
+  const wasOnPlayer = playerPage && playerPage.classList.contains('active');
+
+  if (wasOnPlayer && page !== 'player' && !miniplayerActive) {
+    const vid = document.getElementById('video-player');
+    const isVidPlaying = vid && !vid.paused && !vid.ended && vid.readyState > 2;
+    if (isVidPlaying) {
+      activateMiniplayer();
+    }
+  }
+
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   const el = document.getElementById(`page-${page}`);
   if (el) el.classList.add('active');
@@ -276,6 +326,7 @@ async function continueWatching(animeId) {
 }
 
 async function playEpisode(animeId, episodeId) {
+  closeMiniplayer();
   try {
     const episodes = await API.episodes.list(animeId);
     const anime = await API.library.get(animeId);
@@ -348,6 +399,7 @@ function prevEpisode() {
 }
 
 function closePlayer() {
+  closeMiniplayer();
   var player = document.getElementById('video-player');
   if (player) {
     player.pause();
@@ -364,6 +416,81 @@ function closePlayer() {
     backToScrapedDetail();
   } else {
     showPage('library');
+  }
+}
+
+function activateMiniplayer() {
+  const vid = document.getElementById('video-player');
+  const wrapper = document.getElementById('player-wrapper');
+  const miniContainer = document.getElementById('miniplayer-container');
+  const miniplayer = document.getElementById('miniplayer');
+  const title = document.getElementById('miniplayer-title');
+  const display = document.getElementById('episode-title-display');
+
+  if (!vid || vid.paused || vid.ended) return;
+
+  if (display) title.textContent = display.textContent || 'Playing';
+
+  const vidClone = vid.cloneNode(true);
+  vidClone.currentTime = vid.currentTime;
+  vidClone.muted = false;
+
+  miniContainer.innerHTML = '';
+  miniContainer.appendChild(vidClone);
+
+  vid.pause();
+  vid.removeAttribute('src');
+  vid.load();
+  if (wrapper) {
+    wrapper.innerHTML = '<video id="video-player" controls autoplay></video>';
+  }
+
+  miniplayer.classList.remove('hidden');
+  miniplayerActive = true;
+
+  vidClone.play().catch(() => {});
+}
+
+function closeMiniplayer() {
+  const miniplayer = document.getElementById('miniplayer');
+  const miniContainer = document.getElementById('miniplayer-container');
+  const vid = miniContainer.querySelector('video');
+  const iframe = miniContainer.querySelector('iframe');
+
+  if (vid) { vid.pause(); }
+  if (iframe) { iframe.src = ''; }
+
+  miniContainer.innerHTML = '';
+  miniplayer.classList.add('hidden');
+  miniplayerActive = false;
+}
+
+function expandMiniplayer() {
+  const miniContainer = document.getElementById('miniplayer-container');
+  const vid = miniContainer.querySelector('video');
+  const title = document.getElementById('miniplayer-title');
+
+  if (!vid || !currentAnimeId) {
+    closeMiniplayer();
+    return;
+  }
+
+  const savedTime = vid.currentTime;
+  const wasPlaying = !vid.paused;
+
+  miniContainer.innerHTML = '';
+  document.getElementById('miniplayer').classList.add('hidden');
+  miniplayerActive = false;
+
+  const targetEp = currentEpisodes[currentEpisodeIndex];
+  if (targetEp) {
+    playEpisode(currentAnimeId, targetEp.id).then(() => {
+      const player = document.getElementById('video-player');
+      if (player) {
+        player.currentTime = savedTime;
+        if (wasPlaying) player.play().catch(() => {});
+      }
+    });
   }
 }
 

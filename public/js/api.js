@@ -1,9 +1,6 @@
 const API = {
   async request(method, url, body) {
-    const opts = {
-      method,
-      headers: { 'Content-Type': 'application/json' }
-    };
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
     if (body) opts.body = JSON.stringify(body);
     const res = await fetch(url, opts);
     if (!res.ok) {
@@ -19,29 +16,26 @@ const API = {
   delete(url) { return this.request('DELETE', url); },
 
   library: {
-    list(params) {
-      const q = new URLSearchParams(params || {}).toString();
-      return API.get('/api/library' + (q ? '?' + q : ''));
-    },
-    get(id) { return API.get('/api/library/' + id); },
-    create(data) { return API.post('/api/library', data); },
-    update(id, data) { return API.put('/api/library/' + id, data); },
-    delete(id) { return API.delete('/api/library/' + id); },
-    setCategories(id, category_ids) { return API.post('/api/library/' + id + '/categories', { category_ids }); }
+    list(params) { return Promise.resolve(Store.library.list(params)); },
+    get(id) { return Promise.resolve(Store.library.get(id)); },
+    create(data) { return Promise.resolve(Store.library.create(data)); },
+    update(id, data) { return Promise.resolve(Store.library.update(id, data)); },
+    delete(id) { return Promise.resolve(Store.library.delete(id)); },
+    setCategories(id, category_ids) { return Promise.resolve(Store.library.setCategories(id, category_ids)); }
   },
 
   episodes: {
-    list(animeId) { return API.get('/api/episodes/' + animeId); },
-    create(data) { return API.post('/api/episodes', data); },
-    updateProgress(animeId, episodeId, data) { return API.put('/api/episodes/' + animeId + '/episodes/' + episodeId + '/progress', data); },
-    getContinue(animeId) { return API.get('/api/episodes/' + animeId + '/continue'); }
+    list(animeId) { return Promise.resolve(Store.episodes.list(animeId)); },
+    create(data) { return Promise.resolve(Store.episodes.create(data)); },
+    updateProgress(animeId, episodeId, data) { return Promise.resolve(Store.episodes.updateProgress(animeId, episodeId, data)); },
+    getContinue(animeId) { return Promise.resolve(Store.episodes.getContinue(animeId)); }
   },
 
   categories: {
-    list() { return API.get('/api/categories'); },
-    create(data) { return API.post('/api/categories', data); },
-    update(id, data) { return API.put('/api/categories/' + id, data); },
-    delete(id) { return API.delete('/api/categories/' + id); }
+    list() { return Promise.resolve(Store.categories.list()); },
+    create(data) { return Promise.resolve(Store.categories.create(data)); },
+    update(id, data) { return Promise.resolve(Store.categories.update(id, data)); },
+    delete(id) { return Promise.resolve(Store.categories.delete(id)); }
   },
 
   sources: {
@@ -52,27 +46,27 @@ const API = {
   },
 
   tracking: {
-    get(animeId) { return API.get('/api/tracking/' + animeId); },
-    set(animeId, data) { return API.post('/api/tracking/' + animeId, data); },
-    remove(animeId, service) { return API.delete('/api/tracking/' + animeId + '/' + service); }
+    get(animeId) { return Promise.resolve(Store.tracking.get(animeId)); },
+    set(animeId, data) { return Promise.resolve(Store.tracking.set(animeId, data)); },
+    remove(animeId, service) { return Promise.resolve(Store.tracking.remove(animeId, service)); }
   },
 
   downloads: {
-    list() { return API.get('/api/downloads'); },
-    create(data) { return API.post('/api/downloads', data); },
-    update(id, data) { return API.put('/api/downloads/' + id, data); },
-    delete(id) { return API.delete('/api/downloads/' + id); }
+    list() { return Promise.resolve(Store.downloads.list()); },
+    create(data) { return Promise.resolve(Store.downloads.create(data)); },
+    update(id, data) { return Promise.resolve(Store.downloads.update(id, data)); },
+    delete(id) { return Promise.resolve(Store.downloads.delete(id)); }
   },
 
   backup: {
-    export() { return API.post('/api/backup/export'); },
-    restore(data) { return API.post('/api/backup/restore', { backup_data: data }); },
-    list() { return API.get('/api/backup/list'); }
+    export() { return Promise.resolve(Store.backup.export()); },
+    restore(data) { return Promise.resolve(Store.backup.restore(data)); },
+    list() { return Promise.resolve(Store.backup.list()); }
   },
 
   settings: {
-    get() { return API.get('/api/settings'); },
-    set(data) { return API.put('/api/settings', data); }
+    get() { return Promise.resolve(Store.settings.get()); },
+    set(data) { return Promise.resolve(Store.settings.set(data)); }
   },
 
   extensions: {

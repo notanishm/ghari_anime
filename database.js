@@ -3,8 +3,6 @@ const path = require('path');
 const fs = require('fs');
 
 function getDataDir() {
-  // In Electron packaged app, __dirname is inside asar (read-only)
-  // Use userData path for writable database storage
   try {
     const { app } = require('electron');
     if (app && app.getPath) {
@@ -14,7 +12,6 @@ function getDataDir() {
       return dataDir;
     }
   } catch (e) {}
-  // Fallback to local data directory (normal Node.js)
   const dataDir = path.join(__dirname, 'data');
   if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
   return dataDir;
@@ -30,6 +27,7 @@ function getDb() {
     db.pragma('journal_mode = WAL');
     db.pragma('foreign_keys = ON');
     initSchema();
+    migrateSchema();
   }
   return db;
 }
@@ -38,6 +36,7 @@ function initSchema() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS anime (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL DEFAULT 'default',
       title TEXT NOT NULL,
       alt_titles TEXT DEFAULT '[]',
       source TEXT DEFAULT '',
@@ -56,7 +55,8 @@ function initSchema() {
 
     CREATE TABLE IF NOT EXISTS categories (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL UNIQUE,
+      user_id TEXT NOT NULL DEFAULT 'default',
+      name TEXT NOT NULL,
       sort_order INTEGER DEFAULT 0,
       color TEXT DEFAULT '#6366f1'
     );
@@ -84,6 +84,7 @@ function initSchema() {
 
     CREATE TABLE IF NOT EXISTS watch_history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL DEFAULT 'default',
       anime_id INTEGER NOT NULL,
       episode_id INTEGER NOT NULL,
       progress REAL DEFAULT 0,
@@ -95,6 +96,7 @@ function initSchema() {
 
     CREATE TABLE IF NOT EXISTS downloads (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL DEFAULT 'default',
       anime_id INTEGER NOT NULL,
       episode_id INTEGER NOT NULL,
       url TEXT NOT NULL,
@@ -108,6 +110,7 @@ function initSchema() {
 
     CREATE TABLE IF NOT EXISTS tracking (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL DEFAULT 'default',
       anime_id INTEGER NOT NULL,
       service TEXT NOT NULL,
       service_id TEXT DEFAULT '',
@@ -137,6 +140,7 @@ function initSchema() {
 
     CREATE TABLE IF NOT EXISTS backups (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL DEFAULT 'default',
       name TEXT NOT NULL,
       file_path TEXT NOT NULL,
       size INTEGER DEFAULT 0,
@@ -158,6 +162,16 @@ function initSchema() {
       date_added DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `);
+}
+
+function migrateSchema() {
+  const tables = ['anime', 'categories', 'watch_history', 'downloads', 'tracking', 'backups'];
+  for (const table of tables) {
+    const cols = db.prepare(`PRAGMA table_info(${table})`).all().map(c => c.name);
+    if (!cols.includes('user_id')) {
+      db.exec(`ALTER TABLE ${table} ADD COLUMN user_id TEXT NOT NULL DEFAULT 'default'`);
+    }
+  }
 }
 
 function closeDb() {

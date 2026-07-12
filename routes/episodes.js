@@ -4,13 +4,14 @@ const { getDb } = require('../database');
 
 router.get('/:animeId', (req, res) => {
   const db = getDb();
+  const uid = req.userId;
   const episodes = db.prepare(`
     SELECT e.*, wh.progress, wh.completed, wh.last_watched
     FROM episodes e
-    LEFT JOIN watch_history wh ON e.id = wh.episode_id
+    LEFT JOIN watch_history wh ON e.id = wh.episode_id AND wh.user_id = ?
     WHERE e.anime_id = ?
     ORDER BY e.number DESC
-  `).all(req.params.animeId);
+  `).all(uid, req.params.animeId);
 
   episodes.forEach(ep => {
     ep.video_urls = JSON.parse(ep.video_urls || '[]');
@@ -46,17 +47,18 @@ router.post('/', (req, res) => {
 
 router.put('/:animeId/episodes/:episodeId/progress', (req, res) => {
   const db = getDb();
+  const uid = req.userId;
   const { progress, completed } = req.body;
 
-  const existing = db.prepare('SELECT id FROM watch_history WHERE anime_id = ? AND episode_id = ?')
-    .get(req.params.animeId, req.params.episodeId);
+  const existing = db.prepare('SELECT id FROM watch_history WHERE anime_id = ? AND episode_id = ? AND user_id = ?')
+    .get(req.params.animeId, req.params.episodeId, uid);
 
   if (existing) {
     db.prepare('UPDATE watch_history SET progress=?, completed=?, last_watched=CURRENT_TIMESTAMP WHERE id=?')
       .run(progress || 0, completed ? 1 : 0, existing.id);
   } else {
-    db.prepare('INSERT INTO watch_history (anime_id, episode_id, progress, completed) VALUES (?, ?, ?, ?)')
-      .run(req.params.animeId, req.params.episodeId, progress || 0, completed ? 1 : 0);
+    db.prepare('INSERT INTO watch_history (user_id, anime_id, episode_id, progress, completed) VALUES (?, ?, ?, ?, ?)')
+      .run(uid, req.params.animeId, req.params.episodeId, progress || 0, completed ? 1 : 0);
   }
 
   res.json({ success: true });
@@ -64,14 +66,15 @@ router.put('/:animeId/episodes/:episodeId/progress', (req, res) => {
 
 router.get('/:animeId/continue', (req, res) => {
   const db = getDb();
+  const uid = req.userId;
   const episode = db.prepare(`
     SELECT e.*, wh.progress, wh.completed
     FROM episodes e
-    LEFT JOIN watch_history wh ON e.id = wh.episode_id
+    LEFT JOIN watch_history wh ON e.id = wh.episode_id AND wh.user_id = ?
     WHERE e.anime_id = ? AND (wh.completed IS NULL OR wh.completed = 0)
     ORDER BY e.number ASC
     LIMIT 1
-  `).get(req.params.animeId);
+  `).get(uid, req.params.animeId);
 
   if (!episode) {
     const first = db.prepare('SELECT * FROM episodes WHERE anime_id = ? ORDER BY number ASC LIMIT 1').get(req.params.animeId);
